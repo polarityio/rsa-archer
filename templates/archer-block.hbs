@@ -1,10 +1,11 @@
 <div>
-    {{#each details.value as |detail|}}
+    {{#each details.value as |detail index|}}
+        {{#if (gt index 0)}}
+            <br /><hr />
+        {{/if}}
         <div>
             <div class="p-title">{{detail.ApplicationName}} - {{detail.KeyField}}</div>
-            <a class="p-link" href="{{block.userOptions.host}}/default.aspx?requestUrl=..%2fGenericContent%2fRecord.aspx%3fid%3d{{detail.ContentId}}%26moduleId%3d{{detail.ModuleId}}">(View in Archer)</a>
+            <a class="p-link" href="{{block.userOptions.host}}/Default.aspx?requestUrl=..%2fGenericContent%2fRecord.aspx%3fid%3d{{detail.ContentId}}%26moduleId%3d{{detail.ModuleId}}">(View in Archer)</a>
         </div>
-        <br />
-        <hr />
     {{/each}}
 </div>

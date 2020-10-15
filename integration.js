@@ -7,99 +7,88 @@ const NodeCache = require('node-cache');
 const cache = new NodeCache({
   stdTTL: 3600
 });
-const MAX_PARALLEL_LOOKUPS = 1;
-const MAX_ENTITIES_TO_BULK_LOOKUP = 5;
 let Logger;
 let requestOptions = {};
-let domainBlackList = [];
-let previousDomainBlackListAsString = '';
+let domainBlockList = [];
+let previousDomainBlockListAsString = '';
 let previousDomainRegexAsString = '';
 let previousIpRegexAsString = '';
-let domainBlacklistRegex = null;
-let ipBlacklistRegex = null;
+let domainBlocklistRegex = null;
+let ipBlocklistRegex = null;
 let requestWithDefaults;
 let token = '';
 
-function _setupRegexBlacklists(options) {
+function _setupRegexBlocklists(options) {
   if (
-    options.domainBlacklistRegex !== previousDomainRegexAsString &&
-    options.domainBlacklistRegex.length === 0
+    options.domainBlocklistRegex !== previousDomainRegexAsString &&
+    options.domainBlocklistRegex.length === 0
   ) {
-    Logger.debug('Removing Domain Blacklist Regex Filtering');
+    Logger.trace('Removing Domain Blocklist Regex Filtering');
     previousDomainRegexAsString = '';
-    domainBlacklistRegex = null;
-  } else {
-    if (options.domainBlacklistRegex !== previousDomainRegexAsString) {
-      previousDomainRegexAsString = options.domainBlacklistRegex;
-      Logger.debug(
-        { domainBlacklistRegex: previousDomainRegexAsString },
-        'Modifying Domain Blacklist Regex'
-      );
-      domainBlacklistRegex = new RegExp(options.domainBlacklistRegex, 'i');
-    }
+    domainBlocklistRegex = null;
+  } else if (options.domainBlocklistRegex !== previousDomainRegexAsString) {
+    previousDomainRegexAsString = options.domainBlocklistRegex;
+    Logger.trace(
+      { domainBlocklistRegex: previousDomainRegexAsString },
+      'Modifying Domain Blocklist Regex'
+    );
+    domainBlocklistRegex = new RegExp(previousDomainRegexAsString, 'i');
   }
 
   if (
-    options.blacklist !== previousDomainBlackListAsString &&
-    options.blacklist.length === 0
+    options.blocklist !== previousDomainBlockListAsString &&
+    options.blocklist.length === 0
   ) {
-    Logger.debug('Removing Domain Blacklist Filtering');
-    previousDomainBlackListAsString = '';
-    domainBlackList = null;
-  } else {
-    if (options.blacklist !== previousDomainBlackListAsString) {
-      previousDomainBlackListAsString = options.blacklist;
-      Logger.debug(
-        { domainBlacklist: previousDomainBlackListAsString },
-        'Modifying Domain Blacklist Regex'
-      );
-      domainBlackList = options.blacklist.split(',').map((item) => item.trim());
-    }
+    Logger.trace('Removing Domain Blocklist Filtering');
+    previousDomainBlockListAsString = '';
+    domainBlockList = null;
+  } else if (options.blocklist !== previousDomainBlockListAsString) {
+    previousDomainBlockListAsString = options.blocklist;
+    Logger.trace(
+      { domainBlocklist: previousDomainBlockListAsString },
+      'Modifying Domain Blocklist Regex'
+    );
+    domainBlockList = options.blocklist.split(',').map((item) => item.trim());
   }
 
   if (
-    options.ipBlacklistRegex !== previousIpRegexAsString &&
-    options.ipBlacklistRegex.length === 0
+    options.ipBlocklistRegex !== previousIpRegexAsString &&
+    options.ipBlocklistRegex.length === 0
   ) {
-    Logger.debug('Removing IP Blacklist Regex Filtering');
+    Logger.trace('Removing IP Blocklist Regex Filtering');
     previousIpRegexAsString = '';
-    ipBlacklistRegex = null;
-  } else {
-    if (options.ipBlacklistRegex !== previousIpRegexAsString) {
-      previousIpRegexAsString = options.ipBlacklistRegex;
-      Logger.debug(
-        { ipBlacklistRegex: previousIpRegexAsString },
-        'Modifying IP Blacklist Regex'
-      );
-      ipBlacklistRegex = new RegExp(options.ipBlacklistRegex, 'i');
-    }
+    ipBlocklistRegex = null;
+  } else if (options.ipBlocklistRegex !== previousIpRegexAsString) {
+    previousIpRegexAsString = options.ipBlocklistRegex;
+    Logger.trace(
+      { ipBlocklistRegex: previousIpRegexAsString },
+      'Modifying IP Blocklist Regex'
+    );
+    ipBlocklistRegex = new RegExp(options.ipBlocklistRegex, 'i');
   }
 }
 
-function _isEntityBlacklisted(entityObj, options) {
-  if (domainBlackList.indexOf(entityObj.value) >= 0) {
-    return true;
-  }
+const _isEntityBlocklisted = (entityObj, options) => {
+  const entityFoundInBlocklist = domainBlockList.indexOf(entityObj.value) >= 0;
 
-  if (entityObj.isIPv4 && !entityObj.isPrivateIP) {
-    if (ipBlacklistRegex !== null) {
-      if (ipBlacklistRegex.test(entityObj.value)) {
-        Logger.debug({ ip: entityObj.value }, 'Blocked BlackListed IP Lookup');
-        return true;
-      }
-    }
-  }
+  const entityIsBlocklistedIp =
+    entityObj.isIPv4 &&
+    !entityObj.isPrivateIP &&
+    ipBlocklistRegex !== null &&
+    ipBlocklistRegex.test(entityObj.value);
 
-  if (entityObj.isDomain) {
-    if (domainBlacklistRegex !== null) {
-      if (domainBlacklistRegex.test(entityObj.value)) {
-        Logger.debug({ domain: entityObj.value }, 'Blocked BlackListed Domain Lookup');
-        return true;
-      }
-    }
-  }
+  if (entityIsBlocklistedIp)
+    Logger.trace({ ip: entityObj.value }, 'Blocked BlockListed IP Lookup');
 
-  return false;
+  const entityIsBlocklistedDomain =
+    entityObj.isDomain &&
+    domainBlocklistRegex !== null &&
+    domainBlocklistRegex.test(entityObj.value);
+
+  if (entityIsBlocklistedDomain)
+    Logger.trace({ domain: entityObj.value }, 'Blocked BlockListed Domain Lookup');
+
+  return entityFoundInBlocklist || entityIsBlocklistedIp || entityIsBlocklistedDomain;
 }
 
 const getTokenCacheKey = (options) =>
@@ -113,12 +102,9 @@ function getAuthToken(options, callback) {
   let tokenCacheKey = getTokenCacheKey(options);
   token = cache.get(tokenCacheKey);
 
-  if (token) {
-    callback(null, token);
-    return;
-  }
+  if (token) return callback(null, token);
 
-  request(
+  requestWithDefaults(
     {
       uri: `${options.host}/api/core/security/login`,
       body: {
@@ -131,24 +117,26 @@ function getAuthToken(options, callback) {
       method: 'POST'
     },
     (err, resp, body) => {
-      if (err) {
-        return callback(err);
-      } else {
-        Logger.trace('Good Archer login: ' + body.RequestedObject.SessionToken);
-        cache.set(tokenCacheKey, body.RequestedObject.SessionToken);
-        callback(null, body.RequestedObject.SessionToken);
+      if (err) return callback(err);
+
+      if (
+        resp.statusCode !== 200 ||
+        !(body && body.RequestedObject && body.RequestedObject.SessionToken)
+      ) {
+        return callback({
+          statusCode: resp ? resp.statusCode : "N/A",
+          err: body,
+          detail: 'Failed to Login to Archer'
+        });
       }
+
+      Logger.trace('Good Archer login: ' + body.RequestedObject.SessionToken);
+      cache.set(tokenCacheKey, body.RequestedObject.SessionToken);
+      callback(null, body.RequestedObject.SessionToken);
     }
   );
 }
 
-function chunk(arr, chunkSize) {
-  const R = [];
-  for (let i = 0, len = arr.length; i < len; i += chunkSize) {
-    R.push(arr.slice(i, i + chunkSize));
-  }
-  return R;
-}
 
 function doLookup(entities, options, cb) {
   let lookupResults = [];
@@ -162,42 +150,38 @@ function doLookup(entities, options, cb) {
   let checkRSK = options.lookupRsks;
 
   Logger.trace('starting lookup');
-  Logger.trace('options are', options);
+  Logger.trace({ options }, 'Options');
 
-  _setupRegexBlacklists(options);
-
-  //Logger.debug(entities);
+  _setupRegexBlocklists(options);
 
   async.each(
     entities,
     function (entityObj, next) {
       if (
-        _isEntityBlacklisted(entityObj, options) ||
+        _isEntityBlocklisted(entityObj, options) ||
         (entityObj.type === 'domain' && !checkDNS) ||
         (entityObj.type === 'IPv6' && !checkv6) ||
-        (entityObj.type === 'arch_apps' && !checkAPP) ||
-        (entityObj.type === 'arch_devc' && !checkDID) ||
-        (entityObj.type === 'arch_risk' && !checkRSK) ||
-        (entityObj.type === 'arch_risk' && !checkRSK) ||
-        (entityObj.type === 'arch_find' && !checkFND) ||
-        (entityObj.type === 'arch_incd' && !checkINC)
+        (entityObj.type === 'custom' &&
+          ((entityObj.types.indexOf('custom.arch_apps') >= 0 && !checkAPP) ||
+            (entityObj.types.indexOf('custom.arch_devc') >= 0 && !checkDID) ||
+            (entityObj.types.indexOf('custom.arch_risk') >= 0 && !checkRSK) ||
+            (entityObj.types.indexOf('custom.arch_risk') >= 0 && !checkRSK) ||
+            (entityObj.types.indexOf('custom.arch_find') >= 0 && !checkFND) ||
+            (entityObj.types.indexOf('custom.arch_incd') >= 0 && !checkINC)))
       ) {
         lookupResults.push({ entity: entityObj, data: null }); //Cache the missed results
+        return next(null);
+      } 
+      _lookupEntity(entityObj, options, function (err, result) {
+        if (err) return next(err);
+        
+        lookupResults.push(result);
+        Logger.trace({ result }, 'Results pushed:');
         next(null);
-      } else {
-        _lookupEntity(entityObj, options, function (err, result) {
-          if (err) {
-            next(err);
-          } else {
-            lookupResults.push(result);
-            Logger.debug({ result: result }, 'Results pushed:');
-            next(null);
-          }
-        });
-      }
+      });
     },
     function (err) {
-      Logger.debug({ lookupResults: lookupResults }, 'Result Values:');
+      Logger.trace({ lookupResults, err }, 'Result Values:');
       cb(err, lookupResults);
     }
   );
@@ -206,12 +190,11 @@ function doLookup(entities, options, cb) {
 function _lookupEntity(entityObj, options, cb) {
   getAuthToken(options, (err, token) => {
     if (err) {
-      Logger.error('Error getting Archer session token: ', err);
-      return;
+      Logger.error({ err }, 'Error getting Archer session token');
+      return cb(err)
     }
 
-    Logger.debug({ entityObj: entityObj }, 'Printing entity Object: ');
-    //log.trace({archer: archer}, "Archer Check:");
+    Logger.trace({ entityObj }, 'Printing entity Object');
 
     let requestOptions = {
       method: 'GET',
@@ -221,9 +204,9 @@ function _lookupEntity(entityObj, options, cb) {
       json: true
     };
 
-    if (!entityObj) {
+    if (!(entityObj && entityObj.value)) {
       Logger.error('No value of entity!');
-      return;
+      return cb({ err: entityObj, detail: 'No value of entity!' });
     }
 
     requestOptions.uri = `${options.host}/api/V2/internal/ContentHits?$filter=Keyword%20eq%20%27${entityObj.value}%27&$top=10`;
@@ -238,35 +221,33 @@ function _lookupEntity(entityObj, options, cb) {
       certificates: true
     };
 
-    Logger.debug({ uri: requestOptions.uri }, 'Request URI');
+    Logger.trace({ uri: requestOptions.uri }, 'Request URI');
 
     requestWithDefaults(requestOptions, function (error, res, body) {
       if (error) {
-        Logger.error({ error: error, res: res, body: body }, 'HTTP Request Error');
-        return done(error);
+        Logger.error({ error, res, body }, 'HTTP Request Error');
+        return cb(error);
       }
 
-      Logger.debug(
-        { body: body, statusCode: res ? res.statusCode : 'N/A' },
+      Logger.trace(
+        { body, statusCode: res ? res.statusCode : 'N/A' },
         'Result of Lookup'
       );
 
-      //let result = {};
 
       if (res.statusCode === 200) {
-        // we got data!
         let hitCount = body.value.length;
         if (hitCount > 0) {
           let hits = hitCount + ' hit';
           if (hitCount > 1) hits = hits + 's';
-          Logger.debug(hits);
+          Logger.trace({ hits }, 'Hits');
           // The lookup results returned is an array of lookup objects with the following format
           cb(null, {
             // Required: This is the entity object passed into the integration doLookup method
             entity: entityObj,
             // Required: An object containing everything you want passed to the template
             data: {
-              //// Required: this is the string value that is displayed in the template
+              // Required: this is the string value that is displayed in the template
               //entity_name: entityObj.value,
               // Required: These are the tags that are displayed in your template
               summary: [hits],
@@ -278,45 +259,16 @@ function _lookupEntity(entityObj, options, cb) {
       } else if (res.statusCode === 401) {
         // no authorization
         Logger.error({ err: '401 Error', detail: 'Unauthorized RSA Archer request.' });
-        cb(err);
-        return;
+        return cb(err);
       } else {
         // unexpected status code
-        Logger.debug({ err: body, detail: '${body.error}: ${body.message}' });
-        cb(err);
-        return;
+        Logger.trace({ err: body, detail: `${body.error}: ${body.message}` });
+        return cb(err);
       }
     });
   });
 }
 
-function getRequestOptions() {
-  return JSON.parse(JSON.stringify(requestOptions));
-}
-
-function _generateArcherLinks(results) {
-  let archerLinks = [];
-  results.value.forEach((result) => {
-    archerLinks.push({
-      moduleID: result.ModuleId,
-      contentID: result.ContentId,
-      applicationName: result.AppliCatioName,
-      keyField: result.KeyField
-    });
-  });
-}
-
-function _isMiss(body) {
-  if (body && Array.isArray(body) && body.length === 0) {
-    return true;
-  }
-
-  if (!body.data) {
-    return true;
-  }
-
-  return false;
-}
 
 function startup(logger) {
   Logger = logger;
@@ -349,7 +301,6 @@ function startup(logger) {
     requestOptions.rejectUnauthorized = config.request.rejectUnauthorized;
   }
 
-  //requestOptions.json = true;
   requestWithDefaults = request.defaults(defaults);
 }
 
