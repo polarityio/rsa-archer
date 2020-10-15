@@ -31,17 +31,17 @@ The numeric ID of the Archer instance, if required for login.
 
 The user domain, if required for login.
 
-### Blacklist Domains
+### Blocklist Domains
 
 Comma delimited list of domains that you do not want to lookup.
 
-### Domain Black List Regex
+### Domain Block List Regex
 
-Domains that match the given regex will not be looked up (if blank, no domains will be black listed).
+Domains that match the given regex will not be looked up (if blank, no domains will be block listed).
 
-### IP Black List Regex
+### IP Block List Regex
 
-IPs that match the given regex will not be looked up (if blank, no IPs will be black listed).
+IPs that match the given regex will not be looked up (if blank, no IPs will be block listed).
 
 ## Polarity
 

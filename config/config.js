@@ -27,23 +27,23 @@ module.exports = {
   customTypes: [
     {
       key: 'arch_apps',
-      regex: /APPID-[0-9]{4,7}/
+      regex: /APPID-[0-9]{2,7}/
     },
     {
       key: 'arch_devc',
-      regex: /DID-[0-9]{4,7}/
+      regex: /DID-[0-9]{2,7}/
     },
     {
       key: 'arch_risk',
-      regex: /RKS-[0-9]{4,7}/
+      regex: /RKS-[0-9]{2,7}/
     },
     {
       key: 'arch_find',
-      regex: /FND-[0-9]{4,7}/
+      regex: /FND-[0-9]{2,7}/
     },
     {
       key: 'arch_incd',
-      regex: /INC-[0-9]{4,7}/
+      regex: /INC-[0-9]{2,7}/
     }
   ],
   /**
@@ -168,10 +168,10 @@ module.exports = {
       adminOnly: false
     },
     {
-      key: 'ipBlacklistRegex',
-      name: 'IP Black List Regex',
+      key: 'ipBlocklistRegex',
+      name: 'IP Block List Regex',
       description:
-        'IPs that match the given regex will not be looked up (if blank, no IPs will be black listed).',
+        'IPs that match the given regex will not be looked up (if blank, no IPs will be block listed).',
       default: '',
       type: 'text',
       userCanEdit: false,
@@ -187,8 +187,8 @@ module.exports = {
       adminOnly: false
     },
     {
-      key: 'blacklist',
-      name: 'Blacklist Domains',
+      key: 'blocklist',
+      name: 'Blocklist Domains',
       description: 'Comma delimited list of domains that you do not want to lookup.',
       default: '',
       type: 'text',
@@ -196,10 +196,10 @@ module.exports = {
       adminOnly: false
     },
     {
-      key: 'domainBlacklistRegex',
-      name: 'Domain Black List Regex',
+      key: 'domainBlocklistRegex',
+      name: 'Domain Block List Regex',
       description:
-        'Domains that match the given regex will not be looked up (if blank, no domains will be black listed).',
+        'Domains that match the given regex will not be looked up (if blank, no domains will be block listed).',
       default: '',
       type: 'text',
       userCanEdit: false,
