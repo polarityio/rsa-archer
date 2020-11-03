@@ -1,7 +1,7 @@
 {
   "main": "./integration.js",
   "name": "rsa-archer",
-  "version": "3.0.0-beta",
+  "version": "3.0.1-beta",
   "private": true,
   "license": "MIT",
   "author": "Polarity",
