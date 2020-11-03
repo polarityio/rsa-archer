@@ -182,7 +182,10 @@ function doLookup(entities, options, cb) {
     },
     function (err) {
       Logger.trace({ lookupResults, err }, 'Result Values:');
-      cb(err, lookupResults);
+      cb(
+        err,
+        lookupResults.filter((i) => i)
+      );
     }
   );
 }
@@ -242,7 +245,7 @@ function _lookupEntity(entityObj, options, cb) {
           if (hitCount > 1) hits = hits + 's';
           Logger.trace({ hits }, 'Hits');
           // The lookup results returned is an array of lookup objects with the following format
-          cb(null, {
+          return cb(null, {
             // Required: This is the entity object passed into the integration doLookup method
             entity: entityObj,
             // Required: An object containing everything you want passed to the template
@@ -256,15 +259,19 @@ function _lookupEntity(entityObj, options, cb) {
             }
           });
         }
+        return cb(null, {
+            entity: entityObj,
+            data: null
+          });
       } else if (res.statusCode === 401) {
         // no authorization
         Logger.error({ err: '401 Error', detail: 'Unauthorized RSA Archer request.' });
         return cb(err);
-      } else {
-        // unexpected status code
-        Logger.trace({ err: body, detail: `${body.error}: ${body.message}` });
-        return cb(err);
       }
+      // unexpected status code
+      Logger.trace({ err: body, detail: `${body.error}: ${body.message}` });
+      return cb(err);
+      
     });
   });
 }
