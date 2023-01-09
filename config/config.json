@@ -1,0 +1,198 @@
+{
+  "name": "RSA Archer",
+  "acronym": "ARCH",
+  "description": "Polarity RSA Archer integration",
+  "entityTypes": [
+    "domain"
+  ],
+  "customTypes": [
+    {
+      "key": "arch_apps",
+      "regex": "APPID-[0-9]{2,7}"
+    },
+    {
+      "key": "arch_devc",
+      "regex": "DID-[0-9]{2,7}"
+    },
+    {
+      "key": "arch_risk",
+      "regex": "RKS-[0-9]{2,7}"
+    },
+    {
+      "key": "arch_find",
+      "regex": "FND-[0-9]{2,7}"
+    },
+    {
+      "key": "arch_incd",
+      "regex": "INC-[0-9]{2,7}"
+    }
+  ],
+  "styles": [
+    "./styles/archer.less"
+  ],
+  "block": {
+    "component": {
+      "file": "./components/archer-block.js"
+    },
+    "template": {
+      "file": "./templates/archer-block.hbs"
+    }
+  },
+  "request": {
+    "cert": "",
+    "key": "",
+    "passphrase": "",
+    "ca": "",
+    "proxy": "",
+    "rejectUnauthorized": true
+  },
+  "logging": {
+    "level": "info"
+  },
+  "options": [
+    {
+      "key": "host",
+      "name": "Archer Server",
+      "description": "The Archer server to use for querying data (no trailing slash)",
+      "default": "https://grc.archer.rsa.com",
+      "type": "text",
+      "userCanEdit": false,
+      "adminOnly": true
+    },
+    {
+      "key": "userName",
+      "name": "API User Name",
+      "description": "The username to use for authentication.",
+      "default": "",
+      "type": "text",
+      "userCanEdit": false,
+      "adminOnly": true
+    },
+    {
+      "key": "userPass",
+      "name": "API User Password",
+      "description": "The password to use for authentication.",
+      "default": "",
+      "type": "password",
+      "userCanEdit": false,
+      "adminOnly": true
+    },
+    {
+      "key": "instanceId",
+      "name": "Instance ID",
+      "description": "The instance ID, if required for login.",
+      "default": "",
+      "type": "text",
+      "userCanEdit": false,
+      "adminOnly": true
+    },
+    {
+      "key": "userDomain",
+      "name": "Domain",
+      "description": "The user domain, if required for login.",
+      "default": "",
+      "type": "text",
+      "userCanEdit": false,
+      "adminOnly": true
+    },
+    {
+      "key": "lookupIPv6",
+      "name": "Lookup IPv6 Addresses",
+      "description": "If checked, the integration will lookup IPv6 addresses in addition to IPv4.",
+      "default": false,
+      "type": "boolean",
+      "userCanEdit": true,
+      "adminOnly": false
+    },
+    {
+      "key": "ipBlocklistRegex",
+      "name": "IP Block List Regex",
+      "description": "IPs that match the given regex will not be looked up (if blank, no IPs will be block listed).",
+      "default": "",
+      "type": "text",
+      "userCanEdit": false,
+      "adminOnly": false
+    },
+    {
+      "key": "lookupDomains",
+      "name": "Lookup Domains",
+      "description": "If checked, the integration will lookup valid domain names.",
+      "default": true,
+      "type": "boolean",
+      "userCanEdit": true,
+      "adminOnly": false
+    },
+    {
+      "key": "blocklist",
+      "name": "Blocklist Domains",
+      "description": "Comma delimited list of domains that you do not want to lookup.",
+      "default": "",
+      "type": "text",
+      "userCanEdit": false,
+      "adminOnly": false
+    },
+    {
+      "key": "domainBlocklistRegex",
+      "name": "Domain Block List Regex",
+      "description": "Domains that match the given regex will not be looked up (if blank, no domains will be block listed).",
+      "default": "",
+      "type": "text",
+      "userCanEdit": false,
+      "adminOnly": false
+    },
+    {
+      "key": "lookupFnds",
+      "name": "Lookup Archer Finding IDs",
+      "description": "If checked, the integration will the default Archer Findings tracking IDs (FND-XXXXX).",
+      "default": true,
+      "type": "boolean",
+      "userCanEdit": true,
+      "adminOnly": false
+    },
+    {
+      "key": "lookupDids",
+      "name": "Lookup Archer Finding IDs",
+      "description": "If checked, the integration will the default Archer Devices tracking IDs (DID-XXXXX).",
+      "default": true,
+      "type": "boolean",
+      "userCanEdit": true,
+      "adminOnly": false
+    },
+    {
+      "key": "lookupApps",
+      "name": "Lookup Archer Application IDs",
+      "description": "If checked, the integration will the default Archer Application tracking IDs (APPID-XXXXX).",
+      "default": true,
+      "type": "boolean",
+      "userCanEdit": true,
+      "adminOnly": false
+    },
+    {
+      "key": "lookupIncs",
+      "name": "Lookup Archer Security Incident IDs",
+      "description": "If checked, the integration will the default Archer Security Incident tracking IDs (INC-XXXXX).",
+      "default": true,
+      "type": "boolean",
+      "userCanEdit": true,
+      "adminOnly": false
+    },
+    {
+      "key": "lookupRsks",
+      "name": "Lookup Archer Risk Register IDs",
+      "description": "If checked, the integration will the default Archer Risk Register tracking IDs (RSK-XXXXX).",
+      "default": true,
+      "type": "boolean",
+      "userCanEdit": true,
+      "adminOnly": false
+    },
+    {
+      "key": "directSearch",
+      "name": "Direct Search",
+      "description": "Check if you want each Archer search to be an exact match with found entities",
+      "default": false,
+      "type": "boolean",
+      "userCanEdit": false,
+      "adminOnly": false
+    }
+  ]
+}
