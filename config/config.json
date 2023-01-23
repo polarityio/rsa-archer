@@ -2,9 +2,7 @@
   "name": "RSA Archer",
   "acronym": "ARCH",
   "description": "Polarity RSA Archer integration",
-  "entityTypes": [
-    "domain"
-  ],
+  "entityTypes": ["domain"],
   "customTypes": [
     {
       "key": "arch_apps",
@@ -27,9 +25,8 @@
       "regex": "INC-[0-9]{2,7}"
     }
   ],
-  "styles": [
-    "./styles/archer.less"
-  ],
+  "defaultColor": "light-purple",
+  "styles": ["./styles/archer.less"],
   "block": {
     "component": {
       "file": "./components/archer-block.js"

@@ -46,6 +46,7 @@ module.exports = {
       regex: /INC-[0-9]{2,7}/
     }
   ],
+  defaultColor: 'light-purple',
   /**
    * An array of style files (css or less) that will be included for your integration. Any styles specified in
    * the below files can be used in your custom template.
