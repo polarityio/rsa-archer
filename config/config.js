@@ -22,7 +22,7 @@ module.exports = {
    * @type String
    * @optional
    */
-  description: 'Polarity RSA Archer integration',
+  description: 'Allows for freeform text searching for IPs, domains as well as tracking IDs for core applications such as Devices, Applications, Risk Registry, Security Incidents and Findings in your Archer instance',
   entityTypes: ['ip', 'domain'],
   customTypes: [
     {
@@ -115,7 +115,7 @@ module.exports = {
   options: [
     {
       key: 'host',
-      name: 'Archer Server',
+      name: 'Archer Server URL',
       description: 'The Archer server to use for querying data (no trailing slash)',
       default: 'https://grc.archer.rsa.com',
       type: 'text',
@@ -124,7 +124,7 @@ module.exports = {
     },
     {
       key: 'userName',
-      name: 'API User Name',
+      name: 'User Name',
       description: 'The username to use for authentication.',
       default: '',
       type: 'text',
@@ -133,7 +133,7 @@ module.exports = {
     },
     {
       key: 'userPass',
-      name: 'API User Password',
+      name: 'User Password',
       description: 'The password to use for authentication.',
       default: '',
       type: 'password',
@@ -218,7 +218,7 @@ module.exports = {
     },
     {
       key: 'lookupDids',
-      name: 'Lookup Archer Finding IDs',
+      name: 'Lookup Archer Device IDs',
       description:
         'If checked, the integration will the default Archer Devices tracking IDs (DID-XXXXX).',
       default: true,
@@ -229,8 +229,7 @@ module.exports = {
     {
       key: 'lookupApps',
       name: 'Lookup Archer Application IDs',
-      description:
-        'If checked, the integration will the default Archer Application tracking IDs (APPID-XXXXX).',
+      description: 'If checked, the integration will the default Archer Application tracking IDs (APPID-XXXXX).',
       default: true,
       type: 'boolean',
       userCanEdit: true,

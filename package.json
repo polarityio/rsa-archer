@@ -1,17 +1,14 @@
 {
   "name": "rsa-archer",
-  "version": "3.0.4",
+  "version": "3.1.0",
   "main": "./integration.js",
   "private": true,
   "license": "MIT",
   "author": "Polarity",
   "dependencies": {
     "async": "^2.6.4",
+    "lodash": "^4.17.21",
     "node-cache": "^4.2.0",
     "postman-request": "^2.88.1-postman.31"
-  },
-  "scripts": {
-    "test": "./node_modules/.bin/mocha --recursive",
-    "dev": "./sync.js"
   }
 }

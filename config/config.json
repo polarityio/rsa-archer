@@ -2,8 +2,11 @@
   "polarityIntegrationUuid": "e4795c20-cce1-11ed-aeee-075d3490155d",
   "name": "RSA Archer",
   "acronym": "ARCH",
-  "description": "Polarity RSA Archer integration",
-  "entityTypes": ["domain"],
+  "description": "Allows for freeform text searching for IPs, domains as well as tracking IDs for core applications such as Devices, Applications, Risk Registry, Security Incidents and Findings in your Archer instance",
+  "entityTypes": [
+    "ip",
+    "domain"
+  ],
   "customTypes": [
     {
       "key": "arch_apps",
@@ -27,7 +30,9 @@
     }
   ],
   "defaultColor": "light-purple",
-  "styles": ["./styles/archer.less"],
+  "styles": [
+    "./styles/archer.less"
+  ],
   "block": {
     "component": {
       "file": "./components/archer-block.js"
@@ -50,7 +55,7 @@
   "options": [
     {
       "key": "host",
-      "name": "Archer Server",
+      "name": "Archer Server URL",
       "description": "The Archer server to use for querying data (no trailing slash)",
       "default": "https://grc.archer.rsa.com",
       "type": "text",
@@ -59,7 +64,7 @@
     },
     {
       "key": "userName",
-      "name": "API User Name",
+      "name": "User Name",
       "description": "The username to use for authentication.",
       "default": "",
       "type": "text",
@@ -68,7 +73,7 @@
     },
     {
       "key": "userPass",
-      "name": "API User Password",
+      "name": "User Password",
       "description": "The password to use for authentication.",
       "default": "",
       "type": "password",
@@ -149,7 +154,7 @@
     },
     {
       "key": "lookupDids",
-      "name": "Lookup Archer Finding IDs",
+      "name": "Lookup Archer Device IDs",
       "description": "If checked, the integration will the default Archer Devices tracking IDs (DID-XXXXX).",
       "default": true,
       "type": "boolean",
