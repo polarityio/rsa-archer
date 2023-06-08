@@ -1,13 +1,14 @@
 const async = require('async');
 const config = require('./config/config');
 const request = require('postman-request');
+const getDetailFields = require('./getDetailFields');
 const util = require('util');
 const fs = require('fs');
 const NodeCache = require('node-cache');
 const cache = new NodeCache({
   stdTTL: 3600
 });
-let Logger;
+let Logger = console;
 let requestOptions = {};
 let domainBlockList = [];
 let previousDomainBlockListAsString = '';
@@ -16,6 +17,7 @@ let previousIpRegexAsString = '';
 let domainBlocklistRegex = null;
 let ipBlocklistRegex = null;
 let requestWithDefaults;
+let authedAsyncRequestWithDefaults;
 let token = '';
 
 function _setupRegexBlocklists(options) {
@@ -89,7 +91,7 @@ const _isEntityBlocklisted = (entityObj, options) => {
     Logger.trace({ domain: entityObj.value }, 'Blocked BlockListed Domain Lookup');
 
   return entityFoundInBlocklist || entityIsBlocklistedIp || entityIsBlocklistedDomain;
-}
+};
 
 const getTokenCacheKey = (options) =>
   options.host +
@@ -124,7 +126,7 @@ function getAuthToken(options, callback) {
         !(body && body.RequestedObject && body.RequestedObject.SessionToken)
       ) {
         return callback({
-          statusCode: resp ? resp.statusCode : "N/A",
+          statusCode: resp ? resp.statusCode : 'N/A',
           err: body,
           detail: 'Failed to Login to Archer'
         });
@@ -136,7 +138,6 @@ function getAuthToken(options, callback) {
     }
   );
 }
-
 
 function doLookup(entities, options, cb) {
   let lookupResults = [];
@@ -171,10 +172,10 @@ function doLookup(entities, options, cb) {
       ) {
         lookupResults.push({ entity: entityObj, data: null }); //Cache the missed results
         return next(null);
-      } 
+      }
       _lookupEntity(entityObj, options, function (err, result) {
         if (err) return next(err);
-        
+
         lookupResults.push(result);
         Logger.trace({ result }, 'Results pushed:');
         next(null);
@@ -194,7 +195,7 @@ function _lookupEntity(entityObj, options, cb) {
   getAuthToken(options, (err, token) => {
     if (err) {
       Logger.error({ err }, 'Error getting Archer session token');
-      return cb(err)
+      return cb(err);
     }
 
     Logger.trace({ entityObj }, 'Printing entity Object');
@@ -237,7 +238,6 @@ function _lookupEntity(entityObj, options, cb) {
         'Result of Lookup'
       );
 
-
       if (res.statusCode === 200) {
         let hitCount = body.value.length;
         if (hitCount > 0) {
@@ -260,9 +260,9 @@ function _lookupEntity(entityObj, options, cb) {
           });
         }
         return cb(null, {
-            entity: entityObj,
-            data: null
-          });
+          entity: entityObj,
+          data: null
+        });
       } else if (res.statusCode === 401) {
         // no authorization
         Logger.error({ err: '401 Error', detail: 'Unauthorized RSA Archer request.' });
@@ -271,11 +271,9 @@ function _lookupEntity(entityObj, options, cb) {
       // unexpected status code
       Logger.trace({ err: body, detail: `${body.error}: ${body.message}` });
       return cb(err);
-      
     });
   });
 }
-
 
 function startup(logger) {
   Logger = logger;
@@ -309,6 +307,56 @@ function startup(logger) {
   }
 
   requestWithDefaults = request.defaults(defaults);
+
+  authedAsyncRequestWithDefaults = (requestOptions) =>
+    new Promise((resolve, reject) => {
+      getAuthToken(requestOptions.options, (err, token) => {
+        if (err) {
+          Logger.error({ err }, 'Error getting Archer session token');
+          reject(err);
+        }
+        const ro = {
+          ...requestOptions,
+          headers: {
+            ...requestOptions.headers,
+            Authorization: 'Archer session-id=' + token,
+            'Content-Type': 'application/json'
+          },
+          json: true
+        };
+        requestWithDefaults(ro, function (error, res, body) {
+          if (error) {
+            Logger.error(
+              {
+                url: requestOptions.url,
+                requestError: parseErrorToReadableJson(error),
+                res,
+                body
+              },
+              'HTTP Request Error'
+            );
+            reject(error);
+          }
+          if (res.statusCode === 200) {
+            //good details results
+            Logger.trace(
+              { url: requestOptions.url, body, statusCode: res ? res.statusCode : 'N/A' },
+              'Result of Details'
+            );
+            resolve(body);
+          } else if (res.statusCode === 401) {
+            // no authorization
+            const error = {
+              url: requestOptions.url,
+              err: '401 Error',
+              detail: 'Unauthorized RSA Archer request'
+            };
+            Logger.error(error);
+            reject(error);
+          }
+        });
+      });
+    });
 }
 
 function validateStringOption(errors, options, optionName, errMessage) {
@@ -344,8 +392,19 @@ function validateOptions(options, callback) {
   callback(null, errors);
 }
 
+const getOnMessage = { getDetailFields };
+const onMessage = ({ action, data: actionParams }, options, callback) =>
+  getOnMessage[action](
+    actionParams,
+    options,
+    authedAsyncRequestWithDefaults,
+    callback,
+    Logger
+  );
+
 module.exports = {
-  doLookup: doLookup,
-  startup: startup,
-  validateOptions: validateOptions
+  doLookup,
+  startup,
+  validateOptions,
+  onMessage
 };
