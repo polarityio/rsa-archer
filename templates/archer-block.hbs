@@ -1,11 +1,76 @@
 <div>
-    {{#each details.value as |detail index|}}
-        {{#if (gt index 0)}}
-            <br /><hr />
+  {{#each details.value as |detail index|}}
+    {{#if (gt index 0)}}
+      <br />
+    {{/if}}
+    <div>
+      {{#if (get expandableTitleStates index)}}
+        <a
+          href="#"
+          class="expandable-title"
+          {{on "click" (action "toggleExpandableTitle" index detail.ContentId)}}
+        >
+          <span class="text">{{detail.ApplicationName}} - {{detail.KeyField}}</span>
+          {{fa-icon icon="angle-up"}}
+        </a>
+        <a
+          class="p-link"
+          href="{{block.userOptions.host}}/Default.aspx?requestUrl=..%2fGenericContent%2fRecord.aspx%3fid%3d{{detail.ContentId}}%26moduleId%3d{{detail.ModuleId}}"
+        >(View in Archer)</a>
+        {{#if (get getDetailFieldsIsRunning index)}}
+          <div class="loading-indicator">
+            {{fa-icon icon="spinner-third" fixedWidth=true spin=true}}
+          </div>
+        {{else if (get getDetailFieldsErrorMessage index)}}
+          <div class="alert alert-danger error-container">
+            <div class="error-title">
+              {{fa-icon "exclamation-circle"}}
+              Error Loading Details
+            </div>
+            <div class="error-message">{{get getDetailFieldsErrorMessage index}}</div>
+          </div>
+        {{else if (get detailFieldsStates index)}}
+          <div class="detail-fields">
+            {{#each (get detailFieldsStates index) as |displayField|}}
+              {{#if
+                (or
+                  displayField.Value
+                  (eq displayField.Value false)
+                  (eq displayField.Value 0)
+                )
+              }}
+                <div>
+                  <span class="p-key">{{displayField.Name}}: </span>
+                  <span class="p-value break-all">
+                    {{#if (or (eq displayField.Type "DATE") (eq displayField.Type "FIRST_PUBLISHED") (eq displayField.Type "LAST_UPDATED"))}}
+                      {{moment-format
+                        displayField.Value
+                        "ddd MM/DD/YYYY"
+                        timeZone=timezone
+                      }}
+                    {{else}}
+                      {{displayField.Value}}
+                    {{/if}}
+                  </span>
+                </div>
+              {{/if}}
+            {{/each}}
+          </div>
         {{/if}}
-        <div>
-            <div class="p-title">{{detail.ApplicationName}} - {{detail.KeyField}}</div>
-            <a class="p-link" href="{{block.userOptions.host}}/Default.aspx?requestUrl=..%2fGenericContent%2fRecord.aspx%3fid%3d{{detail.ContentId}}%26moduleId%3d{{detail.ModuleId}}">(View in Archer)</a>
-        </div>
-    {{/each}}
+      {{else}}
+        <a
+          href="#"
+          class="expandable-title"
+          {{on "click" (action "toggleExpandableTitle" index detail.ContentId)}}
+        >
+          <span class="text">{{detail.ApplicationName}} - {{detail.KeyField}}</span>
+          {{fa-icon icon="angle-down"}}
+        </a>
+        <a
+          class="p-link"
+          href="{{block.userOptions.host}}/Default.aspx?requestUrl=..%2fGenericContent%2fRecord.aspx%3fid%3d{{detail.ContentId}}%26moduleId%3d{{detail.ModuleId}}"
+        >(View in Archer)</a>
+      {{/if}}
+    </div>
+  {{/each}}
 </div>
