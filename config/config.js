@@ -23,7 +23,7 @@ module.exports = {
    * @optional
    */
   description: 'Allows for freeform text searching for IPs, domains as well as tracking IDs for core applications such as Devices, Applications, Risk Registry, Security Incidents and Findings in your Archer instance',
-  entityTypes: ['ip', 'domain'],
+  entityTypes: ['IPv4', 'IPv6', 'domain'],
   customTypes: [
     {
       key: 'arch_apps',
